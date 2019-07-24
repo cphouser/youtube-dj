@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<title>xeroxcat</title>
+<link rel="stylesheet" type="text/css" href="main.css">
+<body>
+  <div id="head">
+    <img src="head.png" alt="xeroxc.at" />
+  </div>
+
+  <div id="links">
+    <a href="http://diynosaur.neocities.org/">diynosaur</a>
+  </div>
+
+  <div id="left">
+    <ul>
+      <li><a href="youtube.htm">Youtube DJ</a></li>
+      <li>linkb</li>
+      <li>linkc</li>
+      <li>linkd</li>
+    </ul>
+  </div>
+  
+  <div id="right">
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script> -->
+    <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+    
+
+    <script>
+      // 2. This code loads the IFrame Player API code asynchronously.
+      var tag = document.createElement('script');
+
+      tag.src = "https://www.youtube.com/iframe_api";
+      var firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+      // 3. This function creates an <iframe> (and YouTube player)
+      //    after the API code downloads.
+      var player;
+      var videoArray = new Array();
+      var vidHistory = new Array();
+      var randomVideo;
+      var playCheck = true;
+      var djPanel = false;
+      var antiLockingBrakes = 0;
+      const ANTILOCKINGBRAKES = 3;
+      const COOKIENAME = "historyCookie";
+      const HELPTEXT = 'This is the short story<br /><a href="youtubeinfo.htm">Click for the long story</a><br />This is a random stream of<br />uncurated music, filtered<br />by only the process of<br />automated youtube syndication<br /><a href="http://musicweird.blogspot.com/2014/11/what-are-auto-generated-by-youtube.html">Various Artists explained</a><br />Functionality:<br />after each video plays,<br />it is added to the history.<br />Unless cookies are enabled,<br />this history is cleared<br />when the page is refreshed.<br />When the next video is selected,<br />it is checked against the current<br />history to ensure no video is<br />played twice.<br />This history can be carried<br />between sessions using the<br />import and export interface.<br />';
+
+      function onYouTubeIframeAPIReady() {
+        playInit();
+      }
+
+      function setCookie(cname, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        var expires = "expires="+ d.toUTCString();
+        document.cookie = cname + "=" + JSON.stringify(vidHistory) + ";" + expires + ";path=/";
+      }
+
+      function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+      }
+
+      function checkCookie() {
+        var cookieArray = getCookie(COOKIENAME);
+        if (cookieArray == "") {
+          return false;
+        } else {
+          return true;
+        }
+      }
+
+      function loadCookie() {
+        vidHistory = JSON.parse(getCookie(COOKIENAME));
+        vidConsole(vidHistory.length);
+        vidConsole(" Past Videos Loaded");
+        vidConsole("<br />");
+      }
+
+      function playInit(){
+          var xmlhttp = new XMLHttpRequest();
+          var url = "ytList.json";
+          if (checkCookie()) {
+            document.getElementById("cookieCheck").checked = true;
+            loadCookie();
+          } else {
+            vidConsole("Enable Cookies for Auto-History");
+            vidConsole("<br />");
+          }
+          xmlhttp.onreadystatechange = function() {
+              if (this.readyState == 4 && this.status == 200) {
+                  videoArray = JSON.parse(this.responseText);
+                  vidConsole(videoArray.length);
+                  vidConsole(" Videos in Array");
+                  vidConsole("<br />");
+                  playVid();
+              }
+          };
+          xmlhttp.open("GET", url, true);
+          xmlhttp.send();
+
+      }
+
+      function playVid() {
+        findVid();
+        document.getElementById("returner").innerHTML = randomVideo;
+        player = new YT.Player('player', {
+          height: '270',
+          width: '480',
+          videoId: randomVideo,
+          events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+          }
+        });
+      }
+      function findVid() {
+        var unique = false;
+        while (unique == false) {
+          var randomIndex = randomInt(videoArray.length);
+          if (compareVid(randomIndex) == true) {
+            unique = true;
+          } else {
+            vidConsole("duplicate skipped!")
+            vidConsole("<br />")
+          }
+        }
+        randomVideo = videoArray[randomIndex].videoId;
+      }
+      function compareVid(vidIndex) {
+        var vidId = videoArray[vidIndex].videoId;
+        var num = vidHistory.length;
+        for (i = 0; i < num; i++) {
+          if (vidHistory[i] == vidId) {
+            num--;
+          }
+        }
+        if (num == vidHistory.length) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+      function playNextVid() {
+        vidHistory.push(randomVideo);
+        if (document.getElementById("cookieCheck").checked) {
+          setCookie(COOKIENAME, 365);
+        }
+        findVid();
+        document.getElementById("returner").innerHTML = randomVideo;
+
+        document.getElementById("historyCount").innerHTML = "History:";
+        document.getElementById("historyCount").innerHTML += vidHistory.length;
+        document.getElementById("historyCount").innerHTML += " Videos";
+
+        player.loadVideoById(randomVideo);
+      }
+      // 4. The API will call this function when the video player is ready.
+      function onPlayerReady(event) {
+        event.target.playVideo();
+      }
+
+      function onPlayerStateChange(event) {
+        var vidState = event.data;
+        switch(vidState) {
+          case 0:
+            playNextVid();
+            break;
+          case 1:
+            if (playCheck == false) {
+              vidConsole(randomVideo);
+              vidConsole(" is PLAYING");
+              vidConsole("<br />");
+              playCheck = true;
+              if (djPanel == true) {
+                getRates();
+              }
+              antiLockingBrakes = 0;
+            }
+            break;
+          case 2:
+            break;
+          case 3:
+            break;
+          case 5:
+            vidConsole(randomVideo);
+            vidConsole(" is cued?");
+            vidConsole("<br />");
+            break;
+          default:
+            if (antiLockingBrakes < ANTILOCKINGBRAKES) {
+              if (playCheck == true) {
+                vidConsole(randomVideo);
+                vidConsole(" is next");
+                vidConsole("<br />");
+                playCheck = false;
+              } else {
+                vidConsole(randomVideo);
+                vidConsole(" failed");
+                vidConsole("<br />");
+                playNextVid();
+              }
+              antiLockingBrakes++;
+            } else {
+              vidConsole("AntiLockingBrakes Engaged");
+              vidConsole("<br />");
+            }
+            //randomVideo = videoArray[randomInt(videoArray.length)]
+            //player.loadVideoById(randomVideo.videoId);
+            break;
+        }
+      }
+      function randomInt(high) {//ty https://blog.tompawlak.org/generate-random-values-nodejs-javascript
+          return Math.floor(Math.random() * high);
+      }
+      function vidConsole(text) {
+        var console = document.getElementById("vidConsole");
+        console.innerHTML += text;
+        console.scrollTop = console.scrollHeight;
+      }
+      function saveHistory()
+      {
+          vidHistory.push(randomVideo);
+          var textToSave = JSON.stringify(vidHistory);
+          var textToSaveAsBlob = new Blob([textToSave], {type:"application/json"});
+          var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+          var fileNameToSaveAs = "(";
+          fileNameToSaveAs += vidHistory.length;
+          fileNameToSaveAs += ")watchedVideos.txt";
+
+       
+          var downloadLink = document.createElement("a");
+          downloadLink.download = fileNameToSaveAs;
+          downloadLink.innerHTML = "Download File";
+          downloadLink.href = textToSaveAsURL;
+          downloadLink.onclick = destroyClickedElement;
+          downloadLink.style.display = "none";
+          document.body.appendChild(downloadLink);
+       
+          downloadLink.click();
+      }
+      //ty thiscouldbebetter.wordpress.com/2012/12/18/loading-editing-and-saving-a-text-file-in-html5-using-javascrip/
+      function loadHistory()
+      {
+          var fileToLoad = document.getElementById("historyFile").files[0];
+          var fileReader = new FileReader();
+          fileReader.onload = function(fileLoadedEvent) 
+          {
+              vidHistory = JSON.parse(fileLoadedEvent.target.result);
+              vidConsole(vidHistory.length);
+              vidConsole(" Past Videos Loaded");
+              vidConsole("<br />");
+          };
+          fileReader.readAsText(fileToLoad, "UTF-8");
+      }
+
+      function destroyClickedElement(event)
+      {
+          document.body.removeChild(event.target);
+      }
+
+      function showHelp() {
+        vidConsole(HELPTEXT);
+      }
+      function showPanel() {
+        if (djPanel == false) {
+          document.getElementById("djPanel").style.visibility = "visible";
+          djPanel = true;
+        } else {
+          document.getElementById("djPanel").style.visibility = "hidden";
+          djPanel = false;
+        }
+      }
+      function getRates() {
+        if (djPanel == true) {
+          var rateArray = player.getAvailablePlaybackRates();
+          var currentRate = player.getPlaybackRate();
+          var theRates = ["0.25","0.5","0.75","1","1.25","1.5","2"];
+          while (theRates.length > 0) {
+            if (theRates[0] == rateArray[0]) {
+              document.getElementById(theRates[0]).style.visibility = "visible";
+              if (rateArray[0] == currentRate) {
+                var id = "x" + theRates[0];
+                document.getElementById(id).checked = true;
+              }
+              theRates.shift()
+              rateArray.shift();
+            } else {
+              document.getElementById(theRates[0]).style.visibility = "hidden";
+              theRates.shift()
+            }
+          }
+          
+        }
+      }
+      function changeRate() {
+        if (djPanel == true) {
+          var theRates = ["x0.25","x0.5","x0.75","x1","x1.25","x1.5","x2"];
+          theRates.forEach(function(theRate) {
+            if (document.getElementById(theRate).checked) {
+              var rateValue = theRate.slice(1);
+              player.setPlaybackRate(rateValue);
+            }
+          });
+        }
+      }
+
+    </script>
+    <table>
+      <tr>
+          <td>Currently Playing:</td>
+          <td><a href="https://www.youtube.com/channel/UCDZBqSP3HyglavqadtsE-bQ/">
+                                                  Various Artists</a></td>
+          <td><button onclick="showHelp()">Whats Going on Here?</button></td>
+          <td colspan="2"><input type="file" id="historyFile"></input></td>
+      </tr>
+      <tr>
+          <td>Cookie History:</td>
+          <td><input type="checkbox" id="cookieCheck">Enabled</td>
+          <td><button onclick="">--a--</button></td>
+          <td colspan="2"><button onclick="loadHistory()">Import History File (overwrite cookie)</button></td>
+      </tr>
+      <tr>
+          <td colspan="3" rowspan="3"><div id="player"></div>
+          <!--<pre id="ytList"></pre>--></td>
+          <td colspan="2"><div id="vidConsole" 
+            style="
+              height:206px;
+              width:240px;
+              overflow-y:scroll;
+              background-color:#004B4B;
+              color:#FFC34C;
+              "></div></td>  
+      </tr>
+      <tr style="height: 30px;">
+          <td><div id="returner"></div></td>
+          <td><div id="historyCount"></div></td>
+      </tr>
+      <tr style="height: 30px;"">
+          <td><button onclick="playNextVid()">Next Vid</button></td>  
+          <td><button onclick="saveHistory()">Export History</button></td>  
+      </tr>
+    </table>
+    <button onclick="showPanel()">DJokeing</button>
+
+    <table id="djPanel" style="visibility: hidden;">
+      <tr>
+          <td>Current Speed:</td>
+          <td><div id="playRate"></div>
+              <span id="0.25"><input id="x0.25" type="radio" name="rateValue" value="0.25">x0.25&nbsp;&nbsp;</span>
+              <span id="0.5"><input id="x0.5" type="radio" name="rateValue" value="0.5">x0.5&nbsp;&nbsp;</span>
+              <span id="0.75"><input id="x0.75" type="radio" name="rateValue" value="0.75">x0.75&nbsp;&nbsp;</span>
+              <span id="1"><input id="x1" type="radio" name="rateValue" value="1.0">x1.0&nbsp;&nbsp;</span>
+              <span id="1.25"><input id="x1.25" type="radio" name="rateValue" value="1.25">x1.25&nbsp;&nbsp;</span>
+              <span id="1.5"><input id="x1.5" type="radio" name="rateValue" value="1.5">x1.5&nbsp;&nbsp;</span>
+              <span id="2"><input id="x2" type="radio" name="rateValue" value="2.0">x2.0</span>
+          </td>
+          <td><button onclick="changeRate()">Update</button></td>
+      </tr>
+      <tr>
+          <td>--a--</td>
+      </tr>
+      <tr>
+          <td>--b--</td>
+      </tr>
+    </table>
+  </div>
+  
+</body>
+</html>

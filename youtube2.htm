@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<title>xeroxcat</title>
+<link rel="stylesheet" type="text/css" href="main.css">
+<body>
+  <div id="head">
+    <img src="head.png" alt="xeroxc.at" />
+  </div>
+
+  <div id="links">
+    <a href="http://diynosaur.neocities.org/">diynosaur</a>
+  </div>
+
+  <div id="left">
+    <ul>
+      <li><a href="youtube.htm">Youtube DJ</a></li>
+      <li>linkb</li>
+      <li>linkc</li>
+      <li>linkd</li>
+    </ul>
+  </div>
+  
+  <div id="right">
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script> -->
+    <script type="text/javascript" src="ytRun.js"></script>
+    <script src="https://apis.google.com/js/client.js?onload=onClientLoad" type="text/javascript"></script>
+    <table style="border: 4px groove #F8AD17;"><!--ty https://thiscouldbebetter.wordpress.com/-->
+      <tr style="border: 4px ridge #F8AD17;">
+          <td style="border: 2px inset #F8AD17;">Last List:</td>
+          <td style="border: 2px inset #F8AD17;"><input type="file" id="fileToLoad"></input></td>
+          <td style="border: 2px inset #F8AD17;"><button onclick="loadFileAsText()">Load List</button></td>
+          <td style="border: 2px inset #F8AD17;"><div id="returner1"></div></td>
+      </tr>
+      <tr style="border: 4px ridge #F8AD17;">
+          <td style="border: 2px inset #F8AD17;">playlist:</td>
+          <td style="border: 2px inset #F8AD17;"><input id="playlist" cols="10" rows="1"></input></td>
+          <td style="border: 2px inset #F8AD17;"><button onclick="loadPlaylist()">Load playlist</button></td>
+          <td style="border: 2px inset #F8AD17;"><div id="listName"></div></td>
+      </tr>
+      <tr style="border: 4px ridge #F8AD17;">
+          <td style="border: 2px inset #F8AD17;">Next Page Token:</td>
+          <td style="border: 2px inset #F8AD17;"><input id="inputToken" cols="10" rows="1"></input></td>
+          <td style="border: 2px inset #F8AD17;" colspan="2" rowspan="2"><div id="ytList"></div>
+          <!--<pre id="ytList"></pre>--></td>
+      </tr>
+      <tr style="border: 4px ridge #F8AD17;">
+          <td style="border: 2px inset #F8AD17;">Max Videos:<br />limit = 1000000<br />(searches to the next highest x/50)</td>
+          <td style="border: 2px inset #F8AD17;"><input id="vidLimit" cols="10" rows="1"></input></td>
+      </tr>
+      <tr style="border: 4px ridge #F8AD17;">
+          <td style="border: 2px inset #F8AD17;">Filename to Save As:</td>
+          <td style="border: 2px inset #F8AD17;"><input id="inputFileNameToSaveAs"></input></td>
+          <td style="border: 2px inset #F8AD17;" colspan="2"><div id="returner2"></div></td>
+      </tr>
+      <tr style="border: 4px ridge #F8AD17;">
+          <td style="border: 2px inset #F8AD17;">Search Operations:</td>
+          <td style="border: 2px inset #F8AD17;"><button onclick="">Search Newer</button>(not yet)</input></td>
+          <td style="border: 2px inset #F8AD17;"><button onclick="searchLoop()">Search Older</button></td>
+          <td style="border: 2px inset #F8AD17;"><button onclick="saveTextAsFile()">Save List</button></td>
+      </tr>
+      <tr style="border: 4px ridge #F8AD17;">
+          <td style="border: 2px inset #F8AD17;">Array Operations:</td>
+          <td style="border: 2px inset #F8AD17;"><button onclick="loadArray()" colspan="2">
+                                                Load File into array, without search</button></input></td>
+          <td style="border: 2px inset #F8AD17;"><button onclick="findDuplicates()">Find Duplicates</button></input></td>
+      </tr>
+    </table>
+    <pre id="extra"></pre>
+  </div>
+  
+</body>
+</html>
